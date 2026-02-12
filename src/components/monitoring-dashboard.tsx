@@ -36,6 +36,7 @@ export function MonitoringDashboard({ initialMonitors, userData, userId }: Monit
   const [monitors, setMonitors] = useState<Monitor[]>(initialMonitors);
   const [showAlertModal, setShowAlertModal] = useState(false);
   const [isAddingMonitor, setIsAddingMonitor] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const supabase = createClient();
 
   useEffect(() => {
@@ -81,7 +82,23 @@ export function MonitoringDashboard({ initialMonitors, userData, userId }: Monit
 
   const addMonitor = async (url: string) => {
     setIsAddingMonitor(true);
+    setError(null);
     try {
+      // Ensure user exists in public.users (handles users created before trigger)
+      const { error: upsertError } = await supabase.from('users').upsert(
+        { 
+          id: userId, 
+          user_id: userId,
+          email: userData?.email,
+          token_identifier: userData?.email || userId,
+        },
+        { onConflict: 'id' }
+      );
+      
+      if (upsertError) {
+        console.error('User upsert error:', upsertError.message, upsertError.code, upsertError.details);
+      }
+
       const { data: productData, error: scrapeError } = await supabase.functions.invoke(
         'supabase-functions-scrape-product',
         {
@@ -89,7 +106,11 @@ export function MonitoringDashboard({ initialMonitors, userData, userId }: Monit
         }
       );
 
-      if (scrapeError) throw scrapeError;
+      if (scrapeError) {
+        console.error('Scrape error:', scrapeError);
+        setError('Failed to fetch product details. Please check the URL.');
+        throw scrapeError;
+      }
 
       const { error: insertError } = await supabase.from('monitors').insert({
         user_id: userId,
@@ -99,9 +120,13 @@ export function MonitoringDashboard({ initialMonitors, userData, userId }: Monit
         stock_status: productData.inStock ? 'in_stock' : 'sold_out',
       });
 
-      if (insertError) throw insertError;
-    } catch (error) {
-      console.error('Error adding monitor:', error);
+      if (insertError) {
+        console.error('Insert error:', insertError.message, insertError.code, insertError.details);
+        setError(`Failed to save monitor: ${insertError.message || 'Unknown error'}`);
+        throw insertError;
+      }
+    } catch (error: any) {
+      console.error('Error adding monitor:', error?.message || error);
     } finally {
       setIsAddingMonitor(false);
     }
@@ -121,6 +146,14 @@ export function MonitoringDashboard({ initialMonitors, userData, userId }: Monit
       <div className="min-h-screen noise-texture">
         <div className="container mx-auto px-4 py-12 md:py-20">
           <HeroInput onAddMonitor={handleAddMonitor} isLoading={isAddingMonitor} />
+          
+          {error && (
+            <div className="mt-6 max-w-4xl mx-auto">
+              <p className="text-[#ff1493] font-bold text-lg border-4 border-[#1a1a1a] bg-white px-6 py-3 brutalist-shadow-sm">
+                ⚠️ {error}
+              </p>
+            </div>
+          )}
           
           {monitors.length === 0 ? (
             <>

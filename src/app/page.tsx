@@ -3,10 +3,16 @@ import Navbar from "@/components/navbar";
 import Footer from "@/components/footer";
 import { createClient } from "../../supabase/server";
 import { Bell, Zap, Shield, Clock } from 'lucide-react';
+import { redirect } from "next/navigation";
 
 export default async function Home() {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
+
+  // If user is logged in, redirect to dashboard where they can track items
+  if (user) {
+    redirect("/dashboard");
+  }
 
   return (
     <div className="min-h-screen noise-texture">
@@ -48,10 +54,10 @@ export default async function Home() {
             Join collectors who trust us to track their favorite Sonny Angel products
           </p>
           <a 
-            href={user ? "/dashboard" : "/sign-up"} 
+            href="/sign-up" 
             className="inline-block px-12 py-6 bg-[#32ff32] text-[#1a1a1a] font-black text-xl uppercase border-4 border-[#1a1a1a] brutalist-shadow-lg hover:bg-[#00ff00] transition-all duration-200 active:translate-x-2 active:translate-y-2 active:shadow-none"
           >
-            {user ? "GO TO DASHBOARD" : "START TRACKING FREE"}
+            START TRACKING FREE
           </a>
         </div>
       </section>

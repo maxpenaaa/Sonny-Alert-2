@@ -34,7 +34,7 @@ Deno.serve(async (req) => {
     for (const monitor of monitors || []) {
       try {
         const scrapeResponse = await fetch(
-          `${Deno.env.get('SUPABASE_URL')}/functions/v1/supabase-functions-scrape-product`,
+          `${Deno.env.get('SUPABASE_URL')}/functions/v1/scrape-product`,
           {
             method: 'POST',
             headers: {

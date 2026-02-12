@@ -3,9 +3,9 @@ import { createClient } from '../../supabase/server'
 import UserProfile from './user-profile'
 
 export default async function Navbar() {
-  const supabase = createClient()
+  const supabase = await createClient()
 
-  const { data: { user } } = await (await supabase).auth.getUser()
+  const { data: { user } } = await supabase.auth.getUser()
 
 
   return (

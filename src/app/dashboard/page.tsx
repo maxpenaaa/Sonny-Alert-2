@@ -15,6 +15,12 @@ export default async function Dashboard() {
     return redirect("/sign-in");
   }
 
+  // Ensure user exists in public.users table (handles users who signed up before trigger existed)
+  await supabase.from('users').upsert({ 
+    id: user.id, 
+    email: user.email 
+  }, { onConflict: 'id' });
+
   const { data: monitors } = await supabase
     .from('monitors')
     .select('*')

@@ -154,8 +154,9 @@ export type Database = {
           id: string
           image: string | null
           name: string | null
+          phone: string | null
           subscription: string | null
-          token_identifier: string
+          token_identifier: string | null
           updated_at: string | null
           user_id: string | null
         }
@@ -168,8 +169,9 @@ export type Database = {
           id: string
           image?: string | null
           name?: string | null
+          phone?: string | null
           subscription?: string | null
-          token_identifier: string
+          token_identifier?: string | null
           updated_at?: string | null
           user_id?: string | null
         }
@@ -182,8 +184,9 @@ export type Database = {
           id?: string
           image?: string | null
           name?: string | null
+          phone?: string | null
           subscription?: string | null
-          token_identifier?: string
+          token_identifier?: string | null
           updated_at?: string | null
           user_id?: string | null
         }
